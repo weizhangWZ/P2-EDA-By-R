@@ -1,0 +1,479 @@
+White Wine Expoloration by Wei Zhang
+========================================================
+This report explores a dataset containing white wine attributes for 4898 wine.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+# Load all of the packages
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(GGally)
+library(gridExtra)
+```
+
+```{r global_options, include= FALSE}
+knitr::opts_chunk$set(message = FALSE, warning =FALSE, echo = FALSE)
+```
+
+
+```{r echo=FALSE, Load_the_Data}
+# Load the Data (Please change this location while testing)
+wineQualityWhites <- read.csv("/Users/bonnie/Downloads/project/P2_WeiZhang/wineQualityWhites.csv")
+```
+
+# Univariate Plots Section
+```{r echo=FALSE, Univariate_Plots}
+# introduce new variables
+wineQualityWhites$quality.levels <- factor(wineQualityWhites$quality)
+# see the basic information of the dataset
+str(wineQualityWhites)
+summary(wineQualityWhites)
+# draw histogram graph funcion
+sighist <- function(x,yourdata,binsize){
+  ggplot(aes(x=x),data=yourdata)+
+  geom_histogram(binwidth = binsize, na.rm = TRUE)
+}
+```
+
+Our dataset consists of 12 variables, with 4898 observations.
+
+```{r echo=FALSE}
+sighist(wineQualityWhites$quality,
+        wineQualityWhites,1)+
+  ggtitle("Quality Count")+
+  xlab("quality")+
+  scale_x_continuous(breaks = seq(0,10,1))
+```
+
+```{r echo=FALSE}
+sighist(wineQualityWhites$quality,
+        wineQualityWhites,0.5)+
+  ggtitle("Quality Count")+
+  xlab("quality")+
+  scale_x_continuous(breaks = seq(0,10,1))
+```
+
+> Tips: Quality has 10 levels, 0-10. So I took the binwidth as 0.5 of the histogram to show a clear distribution
+
+The distribution is quite clear. The most vote for the quality is around 5-7. I'm wondering what kind of ingrediant influence the quality the most? More or less of them? How to rate a very good wine?
+
+```{r echo=FALSE}
+# plot fixed.acidity
+sighist(wineQualityWhites$fixed.acidity,
+        wineQualityWhites,0.1)+
+  ggtitle("Fixed.acidity Count")+
+  xlab("fixed.acidity")+
+  scale_x_continuous(limits = c(3.8,14.2),breaks = seq(3.8,14.2,0.5))
+
+summary(wineQualityWhites$fixed.acidity)
+
+# plot volatile.acidity
+sighist(wineQualityWhites$volatile.acidity,
+        wineQualityWhites,0.01)+
+  ggtitle("Volatile.acidity Count")+
+  xlab("volatile.acidity")+
+  scale_x_continuous(limits = c(0.08,1.10),breaks = seq(0.08,1.10,0.05))
+
+summary(wineQualityWhites$volatile.acidity)
+
+# plot citric.acid
+sighist(wineQualityWhites$citric.acid,
+        wineQualityWhites,0.01)+
+  ggtitle("Citric.acid Count")+
+  xlab("citric.acid")+
+  scale_x_continuous(limits = c(0,1.66),breaks = seq(0.08,1.66,0.1))
+summary(wineQualityWhites$citric.acid)
+```
+
+Most wine likes to add a range of fixed.acidity,volatile.acidity,citric.acit into the wine. Citric.acid has a *special data* which is around 0.5.
+
+```{r echo=FALSE}
+summary(wineQualityWhites$citric.acid ==0)
+```
+We can see 19 wine did not add citric.acid, it does matter to influence the quality of wine or not?
+
+```{r echo=FALSE}
+# plot sugar in range
+sighist(wineQualityWhites$residual.sugar,
+        wineQualityWhites,0.5)+
+  ggtitle("Sugar Count")+
+  xlab("Sugar")+
+  scale_x_continuous(limits = c(0.6,25),breaks = seq(0.6,25,1))
+
+table(subset(wineQualityWhites$residual.sugar,wineQualityWhites$residual.sugar<2))
+```
+
+It looks like most wine likes to add 1.1,1.2,1.4,1.5,1.6g/m^3 sugar. But is this the best choice for wine?
+
+```{r echo=FALSE}
+sighist(wineQualityWhites$chlorides,
+        wineQualityWhites,0.005)+
+  ggtitle("Chlorides Count")+
+  xlab("chlorides")+
+  scale_x_continuous(limits = c(0.009,0.346),breaks = seq(0.009,0.346,0.025))
+summary(wineQualityWhites$chlorides)
+```
+
+Cholorides has a long tale, but the majority of chlorides is around 0.036 to 0.05 with a mean of 0.04577
+
+```{r echo=FALSE}
+# plot histograms about sulfur dioxide
+sighist(wineQualityWhites$free.sulfur.dioxide,
+        wineQualityWhites,5)+
+  ggtitle("Free.sulfur.dioxide Count")+
+  xlab("free.sulfur.dioxide")+
+  scale_x_continuous(limits = c(2,289),breaks = seq(2,289,10))
+
+sighist(wineQualityWhites$total.sulfur.dioxide,
+        wineQualityWhites,10)+
+  ggtitle("Total.sulfur.dioxide Count")+
+  xlab("total.sulfur.dioxide")+
+  scale_x_continuous(limits = c(9,440),breaks = seq(9,440,20))
+
+```
+
+In this section, I indroduced a new attibute ratio.free.sulfur.dioxide. It can be seen that the ratio of free sulfur dioxide is about 0.19 to 0.32, and the free sulfur dioxide is about 23 - 46 mg/dm^3 
+
+```{r echo=FALSE}
+sighist(wineQualityWhites$density,
+        wineQualityWhites,0.0005)+
+  ggtitle("Density Count")+
+  xlab("density")+
+  scale_x_continuous(limits = c(0.98711,1.03898),breaks = seq(0.98711,1.03898,0.005))
+
+sighist(wineQualityWhites$pH,
+        wineQualityWhites,0.05)+
+  ggtitle("PH Count")+
+  xlab("pH")
+  
+sighist(wineQualityWhites$alcohol,
+        wineQualityWhites,0.25)+
+  ggtitle("Alcohol Count")+
+  xlab("ALcohol")
+  
+sighist(wineQualityWhites$sulphates,
+        wineQualityWhites,0.05)+
+  ggtitle("Sulphates Count")+
+  xlab("Sulphates")
+  
+```
+
+Except the alcohol rate, density,pH,sulphates is like normal distribution. We'll figure out the relationships between them. 
+
+# Univariate Analysis
+
+### What is the structure of your dataset?
+
+There are 4898 white wines in the dataset with 12 features ("fixed.acidity","volatile.acidity","citric.acid","residual.sugar","chlorides","free.sulfur.dioxide","total.sulfur.dioxide","density","pH","sulphates","alcohol","quality")
+
+**acidity** contains:"fixed.acidity","volatile.acidity","citric.acid","pH";
+
+**sulfur dioxide** contains:"free.sulfur.dioxide","total.sulfur.dioxide","sulphates";
+
+**density** contains:"residual.sugar","chlorides","alcohol"
+
+### What is/are the main feature(s) of interest in your dataset?
+
+The main feature is Quality. In this case, I shall figure out the main influences contribute to the quality of white wine.
+
+### What other features in the dataset do you think will help support your investigation into your feature(s) of interest?
+
+"fixed.acidity","volatile.acidity","citric.acid","residual.sugar","chlorides","free.sulfur.dioxide","total.sulfur.dioxide","density","pH","sulphates","alcohol" will help support my investigation into the quality
+
+### Did you create any new variables from existing variables in the dataset?
+
+I introduced quality.levels to be quality factors.
+
+### Of the features you investigated, were there any unusual distributions? Did you perform any operations on the data to tidy, adjust, or change the form of the data? If so, why did you do this?
+
+I didnot do any perations for now. 
+
+# Bivariate Plots Section
+```{r echo=FALSE, fig.width = 15, fig.height = 15, Bivariate_Plots}
+# Calculate the correaltion of different viriables
+cor(wineQualityWhites[,1:12])
+# Draw pair graph
+ggpairs(wineQualityWhites[, 1:13], axisLabels="internal",
+       upper = list(continuous = wrap("cor", size = 3)),
+       lower = list(continuous = wrap(ggally_smooth,alpha=0.03,color = I("red"))),
+       title = "White Wine Factors"
+)
+# Draw bivariate plots
+bivgraph <- function(x,y,yourdata){
+  ggplot(aes(factor(x), y),data = yourdata) +
+    geom_jitter( alpha = 0.2)  +
+    geom_boxplot( alpha = 0.5)
+}
+```
+
+According to the subset of the data:
+
+**quality** strong factors:density,alcohol,total.sulfur.dioxide,chlorides
+
+**pH** strong factors: fixed.acidity,citic.acid,residual.sugar,density
+
+**density** strong factors: residual.sugar,sulfur.dioxide
+
+```{r echo=FALSE}
+bivgraph(wineQualityWhites$quality.levels,
+         wineQualityWhites$density,
+         wineQualityWhites)+
+  ggtitle("Density vs Quality")+
+  coord_cartesian(ylim = c(0.985,1.01))
+
+summary(wineQualityWhites$density)
+```
+
+It canbe seen that, the quality decreased as the density increase, but the inluential rate is not that much. A good wine should have a low density around **0.98711 to 0.995**.
+
+```{r echo=FALSE}
+bivgraph(wineQualityWhites$quality.levels,
+         wineQualityWhites$alcohol,
+         wineQualityWhites)+
+  ggtitle("Alcohol vs Quality")
+
+```
+
+It canbe seen that, the alcohol rate and desity decreased while the quality is bellow 5; the alcohol rate and density increased while the quality is above 5.
+
+If it is a good wine, the alcohol rate can be **11.5% to 12.9%**.
+
+```{r echo=FALSE}
+bivgraph(wineQualityWhites$quality.levels,
+         wineQualityWhites$total.sulfur.dioxide,
+         wineQualityWhites)+
+  ggtitle("Total.sulfur.dioxide vs Quality")
+
+tmp <- subset(wineQualityWhites,wineQualityWhites$quality>6)
+summary(tmp$total.sulfur.dioxide)
+```
+
+In this section, we can see, good white wine only allows a wine has total.sulfur.dioxide about **125.2 mg/m^3** 
+
+```{r echo=FALSE}
+bivgraph(wineQualityWhites$quality.levels,
+         wineQualityWhites$free.sulfur.dioxide,
+         wineQualityWhites)+
+  coord_cartesian(ylim = c(0,120))+
+  ggtitle("Free.sulfur.dioxide vs Quality")
+
+```
+
+Although, we can not sure that free.sulfur.dioxide really influence the quality of the white wine, we can set it into a narrow numbers, like **30-50mg/m^3**
+
+```{r echo=FALSE}
+bivgraph(wineQualityWhites$quality.levels,
+         wineQualityWhites$chlorides,
+         wineQualityWhites)+
+  coord_cartesian(ylim = c(0.01, 0.101))+
+  ggtitle("Chlorides vs Quality")
+
+summary(tmp$chlorides)
+```
+
+A good wine really has small amount of salt. near **0.031 to 0.044g/m^3**
+
+```{r echo=FALSE}
+bivgraph(wineQualityWhites$quality.levels,
+         wineQualityWhites$pH,
+         wineQualityWhites)+
+  ggtitle("PH vs Quality")
+```
+
+Keep a good pH is nessacery, the range is about **3.0 to 3.4 **
+
+
+# Bivariate Analysis
+
+### Talk about some of the relationships you observed in this part of the investigation. How did the feature(s) of interest vary with other features in the dataset?
+
+The quality is influences by the wine's density, alcohol rate chlorides, and the total.sulfur.dixode the most. A good white wine should have a low density, a high alcohol rate, 125mg/m^3 total.sulfur.dixode, and a little chlorides.
+
+### Did you observe any interesting relationships between the other features (not the main feature(s) of interest)?
+
+Although, we can not find the strong relationships with pH, but pH is related to fixed.acidity,citic.acid,residual.sugar,density.
+
+Also, look deep in density, the strong factor contains residual.sugar,sulfur.dioxide. The influences just influence each other.
+
+### What was the strongest relationship you found?
+
+It is alcohol, the seconde is density, the third is chlorides.
+
+
+# Multivariate Plots Section
+
+```{r echo=FALSE, Multivariate_Plots}
+ggplot(aes(x=density, y = residual.sugar,color = quality.levels),data = wineQualityWhites)+
+  geom_point(shape = 4)+
+  scale_color_brewer(type = "seq")+
+  geom_abline(intercept = -1380,slope = 1400,color = "green")+
+  ggtitle("Density vs Residual.sugar vs Quality")
+```
+
+residual.sugar is correlated to density, the points along the green line seems to be a good wine than others.
+
+```{r echo=FALSE}
+ggplot(aes(x=pH, y = fixed.acidity,color = quality.levels),data = wineQualityWhites)+
+  geom_point(shape = 4)+
+  scale_color_brewer(type = "seq")+
+  geom_smooth(method = "lm", se = FALSE,size=1)+
+  ggtitle("PH vs Fixed.acidity vs Quality")
+
+```
+
+It can be seen that pH is correlated to fixed.acidity. The most popular taste of white wines is about in the mean of pH and fixed.acidity
+
+
+```{r echo=FALSE}
+ggplot(aes(x=pH, y = citric.acid,color = quality.levels),data = wineQualityWhites)+
+  geom_point()+
+  scale_color_brewer(type = "seq")+
+  geom_smooth(method = "lm", se = FALSE,size=1)+
+  geom_line(stat = "summary",fun.y = mean,color= "green")+
+  ggtitle("PH vs Citric.acid vs Quality")
+
+```
+
+Also for the citric acid, we can ee that the mean of citric.acid shows higher rate for white wine.
+
+
+```{r echo=FALSE}
+ggplot(aes(x=alcohol, y = density,color = quality.levels),data = wineQualityWhites)+
+  geom_point(na.rm = TRUE,alpha = 0.2)+
+  geom_smooth(method = "lm", se = FALSE,size=1,na.rm = TRUE)+
+  geom_line(stat = "summary",fun.y = mean,color= "black",linetype=5,na.rm = TRUE)+
+  scale_color_brewer(type = "seq")+
+  scale_y_continuous(limits = c(0.988,1.005))+
+  ggtitle("Alcohol vs Density vs Quality")
+```
+
+With a high rate of alcohol and a rate of density, can be a very tasty wine.
+
+```{r echo=FALSE}
+ggplot(aes(x=alcohol, y = chlorides,color = quality.levels),data = wineQualityWhites)+
+  geom_point()+
+  scale_color_brewer(type = "seq")+
+  ggtitle("Alcohol vs Chlorides vs Quality")
+```
+
+This part is quite interesting. Just like we need salt for a shock, some people like to add some salt in it, but marjority of people prefer not to.
+
+# Multivariate Analysis
+
+### Talk about some of the relationships you observed in this part of the investigation. Were there features that strengthened each other in terms of looking at your feature(s) of interest?
+
+PH is influenced by acid, sugar, so ploting the images we can see that the mean of the acid can be used to get a nice white wine. But the best taste of pH is always around 3.0-3.4 which can be seen in Bivariate plots.
+
+Density is influenced by sugar a lot, people likes to drink a low density of white wine but also with sugar.
+
+### Were there any interesting or surprising interactions between features?
+
+Chlorides vs achohol is quite interesting. Just like we need salt for a shock, some people like to add some salt in it, but marjority of people prefer not to.
+
+### OPTIONAL: Did you create any models with your dataset? Discuss the strengths and limitations of your model.
+
+This model is very week, so I decided to delete it as the r-value is only 0.28. Every expert has its taste, because of the lack of data, we can not model a good accurate model for analyzing the real quality of the wine, but a approximate result.But we can actually conclude some statitical result that what a good white wine looks like
+
+
+------
+
+# Final Plots and Summary
+
+### Plot One
+```{r echo=FALSE, Plot_One}
+ggplot(aes(x=quality),data = wineQualityWhites)+
+  geom_histogram(binwidth = 1, color = I("red"),fill = I("red"))+
+  scale_x_continuous(breaks = seq(0,10,1))+
+  ggtitle("Nums of white wines of different quality")+
+  xlab("quality(best 10)")+
+  theme(plot.title=element_text(size = 15,hjust = 0.5))
+ 
+```
+
+### Description One
+
+We can see that, in this dataset of whitewines, the majority of wines are rated as 5,6. As the quality above 8 and 9 is very small, it can not be a convinced datebase for analizing a high qualified wine, but for 5 to 8 wines.
+
+
+### Plot Two
+```{r echo=FALSE, Plot_Two}
+p1<-ggplot(aes(y=density,x=quality.levels),data = wineQualityWhites)+
+  geom_boxplot(outlier.size = 0.1)+
+  xlab("Qualtiy (Best10)")+
+  ylab("Density (g/m^3)")+
+  ggtitle("DensityByQuality")+
+  theme_bw()+
+  theme(plot.title=element_text(size = 15,hjust = 0.5))
+
+p2<-ggplot(aes(y=alcohol,x=quality.levels),data = wineQualityWhites)+
+  geom_boxplot(outlier.size = 0.1)+
+  xlab("Qualtiy (Best10)")+
+  ylab("Alcohol (%/volumn)")+
+  ggtitle("AlcoholByQuality")+
+  theme_bw()+
+  theme(plot.title=element_text(size = 15,hjust = 0.5))
+
+p3<-ggplot(aes(y=chlorides,x=quality.levels),data = wineQualityWhites)+
+  geom_boxplot(outlier.size = 0.1)+
+  xlab("Qualtiy (Best10)")+
+  ylab("chlorides (g/m^3)")+
+  ggtitle("ChloridesByQuality")+
+  theme_bw()+
+  theme(plot.title=element_text(size = 15,hjust = 0.5))
+
+grid.arrange(p1,p2,p3,ncol =3)
+
+```
+
+### Description Two
+
+This plot contains three viriables density,alchhol, chlorides, these three elements are most contributing to the rate of white wine.
+
+### Plot Three
+```{r echo=FALSE, Plot_Three}
+
+ggplot(aes(x=alcohol, y = density,color = quality.levels),data = wineQualityWhites)+
+  geom_point(na.rm = TRUE,alpha = 0.2)+
+  geom_smooth(method = "lm", se = FALSE,size=1,na.rm = TRUE)+
+  geom_line(stat = "summary",fun.y = mean,color= "black",linetype=5,na.rm = TRUE)+
+  scale_color_brewer(type = "seq")+
+  scale_y_continuous(limits = c(0.988,1.005))+
+  ylab("Density (g/m^3)")+
+  xlab("Alcohol (%/m^3)")+
+  ggtitle("Alcohol vs Density vs Quality")+
+  theme(plot.title=element_text(size = 15,hjust = 0.5))
+
+```
+
+### Description Three
+
+This plot shows the realtionship between Alcohol vs Density vs Quality. We can see that the good white wine all gather around the mean value of density, alcohol rate around 10-13%. But still taste is depending on individuals.
+
+------
+
+# Reflection
+
+In this dataset, We can figure out the best choice for a white wine includes following attibutes:
+
+alcohol rate recommended to be **11.5% to 12.9%**
+
+density recommended to be **0.98711 to 0.995**
+
+chlorides recommended to be **0.031 to 0.044g/m^3**
+
+pH recommended to be **3.0 to 3.4 **
+
+free.sulfur.dioxide recommended to be **30-50mg/m^3**
+
+total.sulfur.dioxide recommended to be **125.2 mg/m^3** 
+
+Using this data can help you get a nice drink wine.
+
+
+# Conclusion
+
+We can see in the dataset: a good wine is required accurate dot of acid, sugar, salt, and sulfur dixode. The rate can only reflects some recommendation. 
+
+But because of the lack of data for quality 8 - 9, only have 180 white wines, we cannot build an accurate model to analyze the result. 
+
+For future work, we should gather more and more data about high quality white wines in order to find out the real solution to judge a good white wines.
